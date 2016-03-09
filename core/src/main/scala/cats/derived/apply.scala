@@ -5,12 +5,12 @@ import alleycats.{EmptyK, Pure}
 import export.{ exports, imports, reexports }
 import shapeless._
 
-
-@reexports[MkApply]
-object apply {
-  @imports[Apply]
-  object legacy
-}
+// todo doesn't work because an implicit Functor needs to be scope while Apply itself implements Functor
+//@reexports[MkApply]
+//object apply {
+//  @imports[Apply]
+//  object legacy
+//}
 
 trait MkApply[F[_]] extends Apply[F]
 

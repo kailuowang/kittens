@@ -23,20 +23,21 @@ import cats.std.int._
 
 import TestDefns._
 
-
-//import apply._
-
+//import apply._ todo: export hook conflicts with functor
 
 class ApplyTests extends KittensSuite {
+  import emptyk._, pure._
 
-  import emptyk._, functor._, functor.legacy._, foldable._, foldable.legacy._
+  import ApplyTests._
 
   test("Apply[CaseClassWOption]") {
+    import Implicits.{ccO, fccO}
+
     val M = MkApply[CaseClassWOption]
     val p1 = CaseClassWOption(Option(1))
     val f =  CaseClassWOption(Option((_: Int) + 1))
-    assert(M.ap(f)(p1) == CaseClassWOption(Option(2)))
 
+    assert(M.ap(f)(p1) == CaseClassWOption(Option(2)))
     assert(M.ap(f)(CaseClassWOption(None)) == CaseClassWOption(None))
     val emptyF = CaseClassWOption[Int => Int](None)
     assert(M.ap(emptyF)(CaseClassWOption(Option(1))) == CaseClassWOption(None))
@@ -44,6 +45,7 @@ class ApplyTests extends KittensSuite {
   }
 
   test("Apply[IList]") {
+    import Implicits.{l, fl}
 
     val A = MkApply[IList]
 
@@ -71,20 +73,22 @@ class ApplyTests extends KittensSuite {
     assert(resultList === llarge.map(_ + 1))
   }
 
-    test("Apply[λ[t => List[List[t]]]") {
-      type LList[T] = List[List[T]]
-      val A = MkApply[LList]
+  test("Apply[λ[t => List[List[t]]]") {
+    import Implicits.{ll, fll}
 
-      val l = List(List(1), List(2, 3), List(4, 5, 6), List(), List(7))
-      val expected = List(List(2), List(3, 4), List(5, 6, 7), List(), List(8))
-      val fPlusOne: LList[Int => Int] = List(List((_: Int) + 1))
+    val A = MkApply[LList]
 
-      assert(A.ap(fPlusOne)(l) == expected)
-    }
+    val l = List(List(1), List(2, 3), List(4, 5, 6), List(), List(7))
+    val expected = List(List(2), List(3, 4), List(5, 6, 7), List(), List(8))
+    val fPlusOne: LList[Int => Int] = List(List((_: Int) + 1))
+
+    assert(A.ap(fPlusOne)(l) == expected)
+  }
 }
 
 class ApplyWithoutEmptyKTests extends KittensSuite {
-  import functor._, functor.legacy._, foldable._, foldable.legacy._
+
+  import ApplyTests.Implicits.{t, ft}
 
   test("Apply[Tree]") {
     val A = MkApply[Tree]
@@ -109,6 +113,43 @@ class ApplyWithoutEmptyKTests extends KittensSuite {
     val fLength: Tree[String => Int] = Leaf((_: String).length)
 
     assert(A.ap(fLength)(tree) == expected)
+  }
+
+}
+
+
+object ApplyTests {
+  import emptyk._, pure._
+  type LList[T] = List[List[T]]
+
+
+  //Has to isolate Foldable and Functor derivation,
+  // on scala 2.10.x they can't co exist in the same scope
+  // todo: remove this manual step once Foldable and Functor can co exist on 2.10.x
+  object FoldableDeriveProxy {
+    import foldable._ , foldable.legacy._
+    lazy val ccO = Foldable[CaseClassWOption]
+    lazy val iList = Foldable[IList]
+    lazy val t = Foldable[Tree]
+    lazy val lList = Foldable[LList]
+  }
+  object FunctorDeriveProxy {
+    import functor._ , functor.legacy._
+    lazy val ccO = Functor[CaseClassWOption]
+    lazy val iList = Functor[IList]
+    lazy val t = Functor[Tree]
+    lazy val lList = Functor[LList]
+  }
+
+  object Implicits {
+    implicit lazy val ccO: Foldable[CaseClassWOption] = FoldableDeriveProxy.ccO
+    implicit lazy val l:  Foldable[IList] = FoldableDeriveProxy.iList
+    implicit lazy val t: Foldable[Tree] = FoldableDeriveProxy.t
+    implicit lazy val ll: Foldable[LList] = FoldableDeriveProxy.lList
+    implicit lazy val fccO: Functor[CaseClassWOption] = FunctorDeriveProxy.ccO
+    implicit lazy val fl: Functor[IList] = FunctorDeriveProxy.iList
+    implicit lazy val ft: Functor[Tree] = FunctorDeriveProxy.t
+    implicit lazy val fll: Functor[LList] = FunctorDeriveProxy.lList
   }
 
 }
