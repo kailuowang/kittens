@@ -106,14 +106,7 @@ class ApplyWithoutEmptyKTests extends KittensSuite {
           Leaf(6)
         )
       )
-    val fLength: Tree[String => Int] =
-      Node(
-        Leaf((_: String).length),
-        Node(
-          Leaf((_: String).length),
-          Leaf((_: String).length)
-        )
-      )
+    val fLength: Tree[String => Int] = Leaf((_: String).length)
 
     assert(A.ap(fLength)(tree) == expected)
   }
