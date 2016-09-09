@@ -4,6 +4,7 @@ import ReleaseTransformations._
 
 lazy val buildSettings = Seq(
   organization := "org.typelevel",
+  scalaOrganization := "org.typelevel",
   scalaVersion := "2.11.8",
   crossScalaVersions := Seq("2.10.6", "2.11.8")
 )
@@ -13,6 +14,8 @@ lazy val commonSettings = Seq(
     "-feature",
     "-language:higherKinds",
     "-language:implicitConversions",
+    "-Ypartial-unification",
+    //    "-Xlog-implicits",
     "-unchecked"
   ),
   resolvers ++= Seq(
@@ -29,7 +32,6 @@ lazy val commonSettings = Seq(
     "org.scalacheck"  %% "scalacheck"     % "1.12.5" % "test",
     "org.typelevel"   %% "discipline"     % "0.4" % "test",
 
-    compilerPlugin("com.milessabin" % "si2712fix-plugin" % "1.1.0" cross CrossVersion.full),
     compilerPlugin("org.spire-math" %% "kind-projector" % "0.6.3")
   ),
 
